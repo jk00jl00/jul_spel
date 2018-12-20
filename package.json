@@ -1,5 +1,5 @@
 {
-  "name": "Online Snake",
+  "name": "online-snake",
   "version": "1.0.0",
   "description": " Online snake ",
   "main": "server.js",
