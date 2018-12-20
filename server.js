@@ -38,7 +38,7 @@ for(let i = 0; i < (gridSize * gridSize)/500; i++)
 
 
 
-server.listen(3000,function(){
+server.listen(process.env.PORT || 8080,function(){
     console.log('Listening on '+server.address().port);
 });
 
