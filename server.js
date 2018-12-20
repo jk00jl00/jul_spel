@@ -30,6 +30,7 @@ const KEYS = {
 };
 var players = [];
 var apples = [];
+var connections = [];
 for(let i = 0; i < (gridSize * gridSize)/500; i++)
     apples.push({x: randomInt(0,gridSize), y: randomInt(0,gridSize), respawn : function(){
     this.x = randomInt(0,gridSize);
@@ -62,7 +63,7 @@ io.on('connection',function(socket){
             inputTimer: 0,
             move : function(){
                 // Update tail
-                inputTimer++;
+                this.inputTimer++;
                 for(var i = this.tail.length-1; i >= 0; i--) {
                   this.tail[i].x = (i===0) ? this.x : this.tail[i-1].x;
                   this.tail[i].y = (i===0) ? this.y : this.tail[i-1].y;
@@ -174,7 +175,9 @@ io.on('connection',function(socket){
     socket.on('disconnect',function(){
         let i = players.indexOf(socket.player);
         players.splice(i, 1);
+        connections.splice(connections.indexOf(socket), 1);
     });
+    connections.push(socket);
 });
 
 
@@ -183,8 +186,9 @@ function randomInt (low, high) {
 }
 
 function disconnectPlayer(id){
-    io.sockets.forEach((socket) => {
+    connections.forEach((socket) => {
         if(socket.player.id === id){
+            console.log("disconnect player due to innactivity");
             socket.disconnect();
         }
     });
@@ -193,7 +197,7 @@ function disconnectPlayer(id){
 setInterval(() => {
   players.forEach((p) => {
     p.move();
-    if(inputTimer > 1000){
+    if(p.inputTimer > 300){
         disconnectPlayer(p.id);
         players.splice(players.indexOf(p), 1);
     }
