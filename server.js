@@ -46,12 +46,12 @@ server.listen(process.env.PORT || 8080,function(){
 io.on('connection',function(socket){
     var i;
     let isConnected = false;
-    players.forEach((p)=>{
+    /*players.forEach((p)=>{
         if(p.con == socket.request.connection.remoteAddress){
             socket.player = p; 
             isConnected = true;
         }
-    });
+    });*/
     if(!isConnected){
         socket.player = {
             con: socket.request.connection.remoteAddress,
@@ -197,7 +197,7 @@ function disconnectPlayer(id){
 setInterval(() => {
   players.forEach((p) => {
     p.move();
-    if(p.inputTimer > 300){
+    if(p.inputTimer > 1000){
         disconnectPlayer(p.id);
         players.splice(players.indexOf(p), 1);
     }
