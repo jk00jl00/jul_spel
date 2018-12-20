@@ -59,8 +59,10 @@ io.on('connection',function(socket){
             y: randomInt(0,gridSize),
             dir: randomInt(0,3),
             tail: [],
+            inputTimer: 0,
             move : function(){
                 // Update tail
+                inputTimer++;
                 for(var i = this.tail.length-1; i >= 0; i--) {
                   this.tail[i].x = (i===0) ? this.x : this.tail[i-1].x;
                   this.tail[i].y = (i===0) ? this.y : this.tail[i-1].y;
@@ -152,6 +154,7 @@ io.on('connection',function(socket){
     socket.emit('allplayers', socket.player, gridSize);
 
     socket.on('keyDown',function(key){
+        socket.player.inputTimer = 0;
         switch (key) {
             case KEYS.up:
             if (socket.player.dir !== DIRS.down)
@@ -178,9 +181,22 @@ io.on('connection',function(socket){
 function randomInt (low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
+
+function disconnectPlayer(id){
+    io.sockets.forEach((socket) => {
+        if(socket.player.id === id){
+            socket.disconnect();
+        }
+    });
+}
+
 setInterval(() => {
   players.forEach((p) => {
     p.move();
+    if(inputTimer > 1000){
+        disconnectPlayer(p.id);
+        players.splice(players.indexOf(p), 1);
+    }
   });
   io.emit('update', {
     players: players.map((p) => ({
