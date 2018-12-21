@@ -93,13 +93,14 @@ io.on('connection',function(socket){
                 
                 this.tail.forEach((t) =>{
                     if(t.x === this.x && t.y === this.y){
-                        this.tail.splice(this.tail.indexOf(t));
+                        this.tailToFood(this.tail.indexOf(t));
+                        this.tail.splice(this.tail.indexOf(t),1);
                     }
                 });
 
                 apples.forEach((a) => {
                     if(a.x === this.x && a.y === this.y){
-                        this.addTail(2);
+                        this.addTail(1);
                         a.respawn();
                     }
                 });
@@ -110,24 +111,21 @@ io.on('connection',function(socket){
                     if(s !== this){
                         if(s !== this && s.x === this.x && s.y === this.y){
                             if(s.tail.length > this.tail.length){
-                                for(let i = 0; i < this.tail.length + 2; i++){
-                                    s.addTail();
-                                }
+                                this.tailToFood(-1);
+                                s.addTail();
                                 this.respawn();
                             } else{
-                                for(let i = 0; i < s.tail.length + 2; i++){
-                                    this.addTail();
-                                }
+                                this.addTail();
+                                s.tailToFood(-1);
                                 s.respawn();
                             }
                         }
 
                         s.tail.forEach((t) =>{
                             if(t.x === this.x && t.y === this.y){
-                                for(let i = 0; i <= s.tail.length - s.tail.indexOf(t); i++){
-                                    this.addTail();
-                                }
-                                s.tail.splice(s.tail.indexOf(t));
+                                s.tailToFood(s.tail.indexOf(t));
+                                this.addTail();
+                                s.tail.splice(s.tail.indexOf(t),1);
                             }
                         });
                     }
@@ -145,6 +143,14 @@ io.on('connection',function(socket){
                 if(!l) l = 1;
                 while(l--)
                     this.tail.push({x: this.x, y: this.y});
+            },
+            tailToFood : function(index){
+                let i = index + 1;
+
+                while(this.tail[i]){
+                    apples.push({x: this.tail[i].x, y: this.tail[i].y, respawn: function(){apples.splice(apples.indexOf(this), 1);}});
+                    this.tail.splice(i, 1);
+                }
             }
         };
         
