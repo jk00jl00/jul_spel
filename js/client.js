@@ -51,8 +51,28 @@ function draw(data){
     });
 
     camera();
-
     ctx.clearRect(0,0, screenWidth, screenHeight);
+    ctx.font = "bold 15px Arial"; 
+    ctx.fillStyle = 'black';
+    ctx.fillText("Length: " + (player.tail.length + 1), 15, 30);
+
+    let lenghts = data.players.map((p) =>({
+        id: p.id,
+        len: p.tail.length + 1
+    }));
+    console.log(lenghts);
+
+    lenghts.sort((a, b) => b.len - a.len);
+    console.log(lenghts);
+
+    for(let i = 0; i < 5 && lenghts[i]; i++){
+        if(lenghts[i].id !== player.id)
+            ctx.fillText("Length of " + lenghts[i].id + ": " + lenghts[i].len, 15, 45 + 15* i);
+        else
+            ctx.fillText("Length of " + lenghts[i].id + "(You): " + lenghts[i].len, 15, 45 + 15* i);
+
+    }
+
     data.players.forEach((p) => {
         if(p.id === player.id)
             ctx.fillStyle = 'black';
