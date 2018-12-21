@@ -63,8 +63,6 @@ function draw(data){
     console.log(lenghts);
 
     lenghts.sort((a, b) => b.len - a.len);
-    console.log(lenghts);
-
     for(let i = 0; i < 5 && lenghts[i]; i++){
         if(lenghts[i].id !== player.id)
             ctx.fillText("Length of " + lenghts[i].id + ": " + lenghts[i].len, 15, 45 + 15* i);
@@ -83,8 +81,8 @@ function draw(data){
             ctx.fillRect(t.x * gridWidth - cameraOfSet.x, t.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
         });
     });
-    ctx.fillStyle = 'red';
     data.apples.forEach((a) =>{
+        ctx.fillStyle = a.colour;
         ctx.fillRect(a.x * gridWidth - cameraOfSet.x, a.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
     })
 }
