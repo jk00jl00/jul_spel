@@ -60,7 +60,6 @@ function draw(data){
         id: p.id,
         len: p.tail.length + 1
     }));
-    console.log(lenghts);
 
     lenghts.sort((a, b) => b.len - a.len);
     for(let i = 0; i < 5 && lenghts[i]; i++){
@@ -76,14 +75,22 @@ function draw(data){
             ctx.fillStyle = 'black';
         else
             ctx.fillStyle = 'blue';
-        ctx.fillRect(p.x * gridWidth - cameraOfSet.x, p.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
+        if((p.x  * gridWidth - cameraOfSet.x >= 0 && p.x * gridWidth - cameraOfSet.x <= screenWidth) &&
+           (p.y * gridHeight - cameraOfSet.y >= 0 && p.y * gridHeight - cameraOfSet.y <= screenHeight))
+            ctx.fillRect(p.x * gridWidth - cameraOfSet.x, p.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
         p.tail.forEach((t) =>{
-            ctx.fillRect(t.x * gridWidth - cameraOfSet.x, t.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
+            if((t.x  * gridWidth - cameraOfSet.x >= 0 && t.x * gridWidth - cameraOfSet.x <= screenWidth) &&
+               (t.y * gridHeight - cameraOfSet.y >= 0 && t.y * gridHeight - cameraOfSet.y <= screenHeight))
+                ctx.fillRect(t.x * gridWidth - cameraOfSet.x, t.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
         });
     });
+
     data.apples.forEach((a) =>{
-        ctx.fillStyle = a.colour;
-        ctx.fillRect(a.x * gridWidth - cameraOfSet.x, a.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
+        if((a.x  * gridWidth - cameraOfSet.x >= 0 && a.x * gridWidth - cameraOfSet.x <= screenWidth) &&
+           (a.y * gridHeight - cameraOfSet.y >= 0 && a.y * gridHeight - cameraOfSet.y <= screenHeight)){
+            ctx.fillStyle = a.colour;
+            ctx.fillRect(a.x  * gridWidth - cameraOfSet.x, a.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
+        }
     })
 }
 

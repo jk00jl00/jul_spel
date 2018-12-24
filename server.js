@@ -180,7 +180,20 @@ io.on('connection',function(socket){
                 let i = index + 1;
 
                 while(this.tail[i]){
-                    apples.push({x: this.tail[i].x, y: this.tail[i].y, value: 1,respawn: function(){apples.splice(apples.indexOf(this), 1);}});
+                    let a = {x: this.tail[i].x, y: this.tail[i].y, value: 1,respawn: function(){
+                            apples.splice(apples.indexOf(this), 1);
+                        },
+                        setColour : function(){
+                            for(let i = 0; i < appleChances.length; i++){
+                                if(appleChances[i].value === this.value){
+                                    this.colour = appleChances[i].colour;
+                                    break;
+                                }
+                            }
+                        }
+                    };
+                    a.setColour();    
+                    apples.push(a);
                     this.tail.splice(i, 1);
                 }
             }
