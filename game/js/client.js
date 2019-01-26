@@ -1,6 +1,23 @@
-/**
- * Created by Jerome on 03-03-17.
- */
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for(var i = 0; i <ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+let username = getCookie("username");
+
+
 
 var Client = {};
 Client.socket = io.connect();
@@ -22,10 +39,13 @@ document.onkeydown = (ev) =>{
 Client.socket.on('allplayers',function(data, size){
     player = data;
     mapSize = size;
+    Client.socket.emit('username', username);
 });
 Client.socket.on('update',function(data){
     draw(data);
 });
+
+Client.socket.on('usernameTaken', () => {document.cookie = ""; window.location.href = "/";})
 
 function camera(){
     if(player.x * gridWidth > screenWidth/2){
@@ -54,19 +74,18 @@ function draw(data){
     ctx.clearRect(0,0, screenWidth, screenHeight);
     ctx.font = "bold 15px Arial"; 
     ctx.fillStyle = 'black';
-    ctx.fillText("Length: " + (player.tail.length + 1), 15, 30);
+    ctx.fillText("Length: " + (player.tail.length + 1), screenWidth - 75, screenHeight - 15);
 
     let lenghts = data.players.map((p) =>({
         id: p.id,
-        len: p.tail.length + 1
+        len: p.tail.length + 1,
+        username: p.username
     }));
 
     lenghts.sort((a, b) => b.len - a.len);
     for(let i = 0; i < 5 && lenghts[i]; i++){
-        if(lenghts[i].id !== player.id)
-            ctx.fillText("Length of " + lenghts[i].id + ": " + lenghts[i].len, 15, 45 + 15* i);
-        else
-            ctx.fillText("Length of " + lenghts[i].id + "(You): " + lenghts[i].len, 15, 45 + 15* i);
+        
+            ctx.fillText(lenghts[i].username+ ": " + lenghts[i].len, 15, 30 + 15* i);
 
     }
 

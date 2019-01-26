@@ -6,6 +6,8 @@ var io = require('socket.io').listen(server);
 app.use('/css',express.static(__dirname + '/css'));
 app.use('/js',express.static(__dirname + '/js'));
 app.use('/assets',express.static(__dirname + '/assets'));
+app.use('/game',express.static(__dirname + '/game'));
+
 
 app.get('/',function(req,res){
     res.sendFile(__dirname+'/index.html');
@@ -17,19 +19,20 @@ app.get('/',function(req,res){
 var lastPlayderID = 0;
 var DIRS = {
     right: 0,
-    down: 1,
-    left: 2,
-    up: 3 
+    down:  1,
+    left:  2,
+    up:    3 
 };
 var gridSize = 250;
 const KEYS = {
-  up: 38,
+  up:    38,
   right: 39,
-  down: 40,
-  left: 37
+  down:  40,
+  left:  37
 };
-var players = [];
-var apples = [];
+var usernames = [];
+var players   = [];
+var apples    = [];
 var appleChances = [
 {odds: 1,      value: 1  ,colour: "#ff0400"},
 {odds: 0.6,    value: 2  ,colour: "#ff5100"},
@@ -42,9 +45,10 @@ var appleChances = [
 {odds: 0.025,  value: 9  ,colour: "#02eaff"},
 {odds: 0.01,   value: 10 ,colour: "#0379ff"},
 {odds: 0.005,  value: 20 ,colour: "#042eff"},
-{odds: 0.0001, value: 100,colour: "#ff00d9"},
+{odds: 0.0005, value: 100,colour: "#ff00d9"},
 ];
 var connections = [];
+
 for(let i = 0; i < (gridSize * gridSize)/300; i++)
     apples.push({x: randomInt(0,gridSize), 
     y: randomInt(0,gridSize), 
@@ -92,33 +96,40 @@ io.on('connection',function(socket){
             tail: [],
             lastDir: 0,
             inputTimer: 0,
+            speed: 5,
+            moveTimer: 0,
             move : function(){
                 // Update tail
                 this.inputTimer++;
-                for(var i = this.tail.length-1; i >= 0; i--) {
-                  this.tail[i].x = (i===0) ? this.x : this.tail[i-1].x;
-                  this.tail[i].y = (i===0) ? this.y : this.tail[i-1].y;
-                }
+                if(this.moveTimer >= this.speed){
+                    for(var i = this.tail.length-1; i >= 0; i--) {
+                    this.tail[i].x = (i===0) ? this.x : this.tail[i-1].x;
+                    this.tail[i].y = (i===0) ? this.y : this.tail[i-1].y;
+                    }
 
-                // Move head
-                switch(this.dir) {
-                  case DIRS.right:
-                    this.x++; break;
-                  case DIRS.left:
-                    this.x--; break;
-                  case DIRS.down:
-                    this.y++; break;
-                  case DIRS.up:
-                    this.y--; break;
-                }
+                    // Move head
+                    switch(this.dir) {
+                    case DIRS.right:
+                        this.x++; break;
+                    case DIRS.left:
+                        this.x--; break;
+                    case DIRS.down:
+                        this.y++; break;
+                    case DIRS.up:
+                        this.y--; break;
+                    }
 
-                // Check boundaries
-                if(this.x > gridSize-1) this.x = 0;
-                if(this.x < 0) this.x = gridSize-1;
-                if(this.y > gridSize-1) this.y = 0;
-                if(this.y < 0) this.y = gridSize-1;
-                this.lastDir = this.dir; 
-                this.checkCollisions();
+                    // Check boundaries
+                    if(this.x > gridSize-1) this.x = 0;
+                    if(this.x < 0) this.x = gridSize-1;
+                    if(this.y > gridSize-1) this.y = 0;
+                    if(this.y < 0) this.y = gridSize-1;
+                    this.lastDir = this.dir; 
+                    //As the movetimer is incremented at the end of move
+                    this.moveTimer = -1;
+                    this.checkCollisions();
+                }
+                this.moveTimer++;
 
             },
             checkCollisions: function() {
@@ -164,7 +175,7 @@ io.on('connection',function(socket){
 
                 });
             },
-            respawn : function(){
+            respawn: function(){
                 this.x = randomInt(0,gridSize);
                 this.y = randomInt(0,gridSize);
                 this.dir = randomInt(0,3);
@@ -175,6 +186,7 @@ io.on('connection',function(socket){
                 if(!l) l = 1;
                 while(l--)
                     this.tail.push({x: this.x, y: this.y});
+                this.setSpeed();
             },
             tailToFood : function(index){
                 let i = index + 1;
@@ -196,6 +208,11 @@ io.on('connection',function(socket){
                     apples.push(a);
                     this.tail.splice(i, 1);
                 }
+                this.setSpeed();
+                
+            },
+            setSpeed : function(){
+                this.speed = 1 + ((this.tail.length - 4) * 0.1);
             }
         };
         
@@ -204,6 +221,17 @@ io.on('connection',function(socket){
         players.push(socket.player);
     }
     socket.emit('allplayers', socket.player, gridSize);
+
+    socket.on('username',function(usrname){
+        if(usernames.includes(usrname)){
+            socket.emit('usernameTaken');
+            disconnectPlayer(socket.player.id);
+            return;
+        } else{
+            usernames.push(usrname);
+            socket.player.username = usrname;
+        }
+    });
 
     socket.on('keyDown',function(key){
         socket.player.inputTimer = 0;        
@@ -226,6 +254,7 @@ io.on('connection',function(socket){
     socket.on('disconnect',function(){
         let i = players.indexOf(socket.player);
         players.splice(i, 1);
+        usernames.splice(usernames.indexOf(socket.player.username), 1);
         connections.splice(connections.indexOf(socket), 1);
     });
     connections.push(socket);
@@ -240,7 +269,7 @@ function randomThroughCance (){
     let val = 1;
 
     appleChances.forEach((c) =>{
-        if(rdm < c.odds){
+        if(rdm < c.odds && val < c.value){
             val = c.value;
         }
     });
@@ -261,7 +290,7 @@ function disconnectPlayer(id){
 setInterval(() => {
   players.forEach((p) => {
     p.move();
-    if(p.inputTimer > 1000){
+    if(p.inputTimer > 10000){
         disconnectPlayer(p.id);
         players.splice(players.indexOf(p), 1);
     }
@@ -271,7 +300,8 @@ setInterval(() => {
       x: p.x,
       y: p.y ,
       id: p.id,
-      tail: p.tail
+      tail: p.tail,
+      username: p.username
     })),
     apples: apples.map((a) => ({
       x: a.x,
@@ -279,4 +309,4 @@ setInterval(() => {
       colour: a.colour
     }))
   });
-}, 100);
+}, 10);
