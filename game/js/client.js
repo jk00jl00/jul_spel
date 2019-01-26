@@ -48,19 +48,21 @@ Client.socket.on('update',function(data){
 Client.socket.on('usernameTaken', () => {document.cookie = ""; window.location.href = "/";})
 
 function camera(){
-    if(player.x * gridWidth > screenWidth/2){
-        cameraOfSet.x = player.x * gridWidth - screenWidth/2;
-        cameraOfSet.x = (cameraOfSet.x < mapSize * gridWidth - screenWidth)? cameraOfSet.x : mapSize * gridWidth - screenWidth; 
-    } else{
-        cameraOfSet.x = 0;
-    }
-    if(player.y * gridHeight > screenHeight/2){
-        cameraOfSet.y = player.y * gridHeight - screenHeight/2;
-        cameraOfSet.y = (cameraOfSet.y < mapSize * gridHeight - screenWidth)? cameraOfSet.y : mapSize * gridHeight - screenWidth; 
-    } else{
-        cameraOfSet.y = 0;
-    }
+    if(cameraOfSet.x < player.x * gridWidth - screenWidth/2) cameraOfSet.x += ((player.x * gridWidth - screenWidth/2) - cameraOfSet.x)/10;
+    else if(cameraOfSet.x > player.x * gridWidth - screenWidth/2) cameraOfSet.x -= (cameraOfSet.x - (player.x * gridWidth - screenWidth/2))/10;
+
+    cameraOfSet.x = (cameraOfSet.x > mapSize * gridWidth - screenWidth)? mapSize * gridWidth - screenWidth :(cameraOfSet.x < 0)? 0 : cameraOfSet.x;
+    cameraOfSet.x = Math.round(cameraOfSet.x);
+
+    if(cameraOfSet.y < player.y * gridHeight - screenHeight/2) cameraOfSet.y += ((player.y * gridHeight - screenHeight/2) - cameraOfSet.y)/10;
+    else if(cameraOfSet.y > player.y * gridHeight - screenHeight/2)cameraOfSet.y -= (cameraOfSet.y - (player.y * gridHeight - screenHeight/2))/10;
+        
+    cameraOfSet.y = (cameraOfSet.y > mapSize * gridHeight - screenWidth)?  mapSize * gridHeight - screenWidth : (cameraOfSet.y < 0)? 0 : cameraOfSet.y;
+    cameraOfSet.y = Math.round(cameraOfSet.y);
+
+
 }
+    
 
 function draw(data){
 
