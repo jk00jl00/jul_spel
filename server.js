@@ -242,8 +242,8 @@ io.on('connection',function(socket){
                 
                                 });
                             }
-                        } else if(this.tail.length > 8){
-                            size = 5;
+                        } else if(this.tail.length > 28){
+                            size = 25;
                             shot.checkCollisions = function(){
                                 apples.forEach((a) =>{
                                     if(a.x === this.x && a.y === this.y){
@@ -253,7 +253,6 @@ io.on('connection',function(socket){
                                 shots.forEach((s) => {
                                     if(s !== this && s.x === this.x && s.y === this.y){
                                         shots.splice(shots.indexOf(s)   , 1);
-                                        shots.splice(shots.indexOf(this), 1);
                                     }
                                 });
                                 players.forEach((s) => {
@@ -272,7 +271,6 @@ io.on('connection',function(socket){
                                                 if(s === this.shooter) s.score--;
                                                 else this.shooter.score++;
                                             }
-                                            shots.splice(shots.indexOf(this), 1);
                                         }
                                     });
                 
@@ -313,8 +311,8 @@ io.on('connection',function(socket){
                 
                                 });
                             }
-                        } else if(this.tail.length > 28){
-                            size = 25;
+                        } else if(this.tail.length > 8){
+                            size = 5;
                             shot.checkCollisions = function(){
                                 apples.forEach((a) =>{
                                     if(a.x === this.x && a.y === this.y){
@@ -324,6 +322,7 @@ io.on('connection',function(socket){
                                 shots.forEach((s) => {
                                     if(s !== this && s.x === this.x && s.y === this.y){
                                         shots.splice(shots.indexOf(s)   , 1);
+                                        shots.splice(shots.indexOf(this), 1);
                                     }
                                 });
                                 players.forEach((s) => {
@@ -342,6 +341,7 @@ io.on('connection',function(socket){
                                                 if(s === this.shooter) s.score--;
                                                 else this.shooter.score++;
                                             }
+                                            shots.splice(shots.indexOf(this), 1);
                                         }
                                     });
                 
