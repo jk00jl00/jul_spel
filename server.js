@@ -28,11 +28,13 @@ const KEYS = {
   up:    38,
   right: 39,
   down:  40,
-  left:  37
+  left:  37,
+  space: 32
 };
 var usernames = [];
 var players   = [];
 var apples    = [];
+var shots     = [];
 var appleChances = [
 {odds: 1,      value: 1  ,colour: "#ff0400"},
 {odds: 0.6,    value: 2  ,colour: "#ff5100"},
@@ -49,7 +51,7 @@ var appleChances = [
 ];
 var connections = [];
 
-for(let i = 0; i < (gridSize * gridSize)/300; i++)
+for(let i = 0; i < (gridSize * gridSize)/100; i++)
     apples.push({x: randomInt(0,gridSize), 
     y: randomInt(0,gridSize), 
     value: randomThroughCance(),
@@ -98,7 +100,17 @@ io.on('connection',function(socket){
             inputTimer: 0,
             speed: 5,
             moveTimer: 0,
+            score: 0,
+            shoot: false,
             move : function(){
+
+                //if lenght is below 4 the snake dies
+
+                if(this.tail.length < 3){
+                    this.tailToFood(-1);
+                    this.respawn();
+                }
+
                 // Update tail
                 this.inputTimer++;
                 if(this.moveTimer >= this.speed){
@@ -129,6 +141,221 @@ io.on('connection',function(socket){
                     this.moveTimer = -1;
                     this.checkCollisions();
                 }
+                if(this.shoot){
+                    if(this.tail.length > 3){
+                        let snake = this;
+                        let size = 1;
+                        let shot = {
+                            x: snake.x,
+                            y: snake.y,
+                            dir: snake.dir,
+                            shooter: snake,
+                            update: function(){
+                                switch(this.dir) {
+                                    case DIRS.right:
+                                        this.x++; break;
+                                    case DIRS.left:
+                                        this.x--; break;
+                                    case DIRS.down:
+                                        this.y++; break;
+                                    case DIRS.up:
+                                        this.y--; break;
+                                    }
+                                    
+                                    if(this.x > gridSize-1) this.x = 0;
+                                    if(this.x < 0) this.x = gridSize-1;
+                                    if(this.y > gridSize-1) this.y = 0;
+                                    if(this.y < 0) this.y = gridSize-1;
+
+                                    this.checkCollisions();
+                            },
+                            checkCollisions: function(){
+                                
+                                apples.forEach((a) =>{
+                                    if(a.x === this.x && a.y === this.y){
+                                        a.respawn();
+                                        shots.splice(shots.indexOf(this), 1);                                        
+                                    }
+                                });
+
+                                shots.forEach((s) => {
+                                    if(s !== this && s.x === this.x && s.y === this.y){
+                                        shots.splice(shots.indexOf(s)   , 1);
+                                        shots.splice(shots.indexOf(this), 1);
+                                    }
+                                });
+                
+                                players.forEach((s) => {
+                                    if(s.x === this.x && s.y === this.y){
+                                        s.tailToFood(-1);
+                                        shots.splice(shots.indexOf(this), 1);
+                                        s.respawn();
+                                        if(s === this.shooter) s.score--;
+                                        else this.shooter.score++;
+                                    }
+                
+                                    s.tail.forEach((t) =>{
+                                        if(t.x === this.x && t.y === this.y){
+                                            s.tailToFood(s.tail.indexOf(t));
+                                            s.tail.splice(s.tail.indexOf(t),1);
+                                            if(s.tail.length < 3){
+                                                if(s === this.shooter) s.score--;
+                                                else this.shooter.score++;
+                                            }
+                                            shots.splice(shots.indexOf(this), 1);
+                                        }
+                                    });
+                
+                                });
+                            }
+                        };
+                        if(this.tail.length > 53){
+                            size = 50;
+                            shot.checkCollisions = function(){
+                                apples.forEach((a) =>{
+                                    if(a.x === this.x && a.y === this.y){
+                                        a.respawn();
+                                    }
+                                });
+                                shots.forEach((s) => {
+                                    if(s !== this && s.x === this.x && s.y === this.y){
+                                        shots.splice(shots.indexOf(s)   , 1);
+                                    }
+                                });
+                                players.forEach((s) => {
+                                    if(s.x === this.x && s.y === this.y){
+                                        s.tailToFood(-1);
+                                        s.respawn();
+                                        if(s === this.shooter) s.score--;
+                                        else this.shooter.score++;
+                                    }
+                                    s.tail.forEach((t) =>{
+                                        if(t.x === this.x && t.y === this.y){
+                                            s.tailToFood(s.tail.indexOf(t));
+                                            s.tail.splice(s.tail.indexOf(t),1);
+                                            if(s.tail.length < 3){
+                                                if(s === this.shooter) s.score--;
+                                                else this.shooter.score++;
+                                            }
+                                        }
+                                    });
+                
+                                });
+                            }
+                        } else if(this.tail.length > 8){
+                            size = 5;
+                            shot.checkCollisions = function(){
+                                apples.forEach((a) =>{
+                                    if(a.x === this.x && a.y === this.y){
+                                        a.respawn();
+                                    }
+                                });
+                                shots.forEach((s) => {
+                                    if(s !== this && s.x === this.x && s.y === this.y){
+                                        shots.splice(shots.indexOf(s)   , 1);
+                                        shots.splice(shots.indexOf(this), 1);
+                                    }
+                                });
+                                players.forEach((s) => {
+                                    if(s.x === this.x && s.y === this.y){
+                                        s.tailToFood(-1);
+                                        shots.splice(shots.indexOf(this), 1);
+                                        s.respawn();
+                                        if(s === this.shooter) s.score--;
+                                        else this.shooter.score++;
+                                    }
+                                    s.tail.forEach((t) =>{
+                                        if(t.x === this.x && t.y === this.y){
+                                            s.tailToFood(s.tail.indexOf(t));
+                                            s.tail.splice(s.tail.indexOf(t),1);
+                                            if(s.tail.length < 3){
+                                                if(s === this.shooter) s.score--;
+                                                else this.shooter.score++;
+                                            }
+                                            shots.splice(shots.indexOf(this), 1);
+                                        }
+                                    });
+                
+                                });
+                            }
+                        } else if(this.tail.length > 13){
+                            size = 10;
+                            shot.checkCollisions = function(){
+                                apples.forEach((a) =>{
+                                    if(a.x === this.x && a.y === this.y){
+                                        a.respawn();
+                                    }
+                                });
+                                shots.forEach((s) => {
+                                    if(s !== this && s.x === this.x && s.y === this.y){
+                                        shots.splice(shots.indexOf(s)   , 1);
+                                        shots.splice(shots.indexOf(this), 1);
+                                    }
+                                });
+                                players.forEach((s) => {
+                                    if(s.x === this.x && s.y === this.y){
+                                        s.tailToFood(-1);
+                                        shots.splice(shots.indexOf(this), 1);
+                                        s.respawn();
+                                        if(s === this.shooter) s.score--;
+                                        else this.shooter.score++;
+                                    }
+                                    s.tail.forEach((t) =>{
+                                        if(t.x === this.x && t.y === this.y){
+                                            s.tailToFood(s.tail.indexOf(t));
+                                            s.tail.splice(s.tail.indexOf(t),1);
+                                            if(s.tail.length < 3){
+                                                if(s === this.shooter) s.score--;
+                                                else this.shooter.score++;
+                                            }
+                                        }
+                                    });
+                
+                                });
+                            }
+                        } else if(this.tail.length > 28){
+                            size = 25;
+                            shot.checkCollisions = function(){
+                                apples.forEach((a) =>{
+                                    if(a.x === this.x && a.y === this.y){
+                                        a.respawn();
+                                    }
+                                });
+                                shots.forEach((s) => {
+                                    if(s !== this && s.x === this.x && s.y === this.y){
+                                        shots.splice(shots.indexOf(s)   , 1);
+                                    }
+                                });
+                                players.forEach((s) => {
+                                    if(s.x === this.x && s.y === this.y){
+                                        s.tailToFood(-1);
+                                        shots.splice(shots.indexOf(this), 1);
+                                        s.respawn();
+                                        if(s === this.shooter) s.score--;
+                                        else this.shooter.score++;
+                                    }
+                                    s.tail.forEach((t) =>{
+                                        if(t.x === this.x && t.y === this.y){
+                                            s.tailToFood(s.tail.indexOf(t));
+                                            s.tail.splice(s.tail.indexOf(t),1);
+                                            if(s.tail.length < 3){
+                                                if(s === this.shooter) s.score--;
+                                                else this.shooter.score++;
+                                            }
+                                        }
+                                    });
+                
+                                });
+                            }
+                        } 
+                        
+                        shots.push(shot);
+                        shot.update();
+
+                        this.tail.splice(this.tail.length-(size + 1), size);
+                    }
+                }
+                this.shoot = false;
                 this.moveTimer++;
 
             },
@@ -158,6 +385,7 @@ io.on('connection',function(socket){
                                 s.addTail();
                                 this.respawn();
                             } else{
+                                this.score++;
                                 this.addTail();
                                 s.tailToFood(-1);
                                 s.respawn();
@@ -169,6 +397,7 @@ io.on('connection',function(socket){
                                 s.tailToFood(s.tail.indexOf(t));
                                 this.addTail();
                                 s.tail.splice(s.tail.indexOf(t),1);
+                                if(s.tail.length < 4) this.score++;
                             }
                         });
                     }
@@ -237,18 +466,22 @@ io.on('connection',function(socket){
         socket.player.inputTimer = 0;        
         switch (key) {
             case KEYS.up:
-            if (socket.player.lastDir !== DIRS.down)
-                socket.player.dir = DIRS.up; break;
-          case KEYS.right:
-            if (socket.player.lastDir !== DIRS.left)
-                socket.player.dir = DIRS.right; break;
-        case KEYS.down:
-            if (socket.player.lastDir !== DIRS.up)
-                socket.player.dir = DIRS.down; break;
-        case KEYS.left:
-            if (socket.player.lastDir !== DIRS.right)
-                socket.player.dir = DIRS.left; break;
+                if (socket.player.lastDir !== DIRS.down)
+                    socket.player.dir = DIRS.up; break;
+            case KEYS.right:
+                if (socket.player.lastDir !== DIRS.left)
+                    socket.player.dir = DIRS.right; break;
+            case KEYS.down:
+                if (socket.player.lastDir !== DIRS.up)
+                    socket.player.dir = DIRS.down; break;
+            case KEYS.left:
+                if (socket.player.lastDir !== DIRS.right)
+                    socket.player.dir = DIRS.left; break;
+            case KEYS.space:
+                socket.player.shoot = true;
+                
         }
+
     });
 
     socket.on('disconnect',function(){
@@ -295,18 +528,27 @@ setInterval(() => {
         players.splice(players.indexOf(p), 1);
     }
   });
+  shots.forEach((s) =>{
+      s.update();
+  });
   io.emit('update', {
     players: players.map((p) => ({
       x: p.x,
       y: p.y ,
       id: p.id,
       tail: p.tail,
-      username: p.username
+      username: p.username,
+      score: p.score
     })),
     apples: apples.map((a) => ({
       x: a.x,
       y: a.y,
       colour: a.colour
+    })),
+    shots: shots.map((s) => ({
+        x: s.x,
+        y: s.y,
+        shid: s.shooter.id
     }))
   });
 }, 10);

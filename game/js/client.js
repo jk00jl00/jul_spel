@@ -48,19 +48,17 @@ Client.socket.on('update',function(data){
 Client.socket.on('usernameTaken', () => {document.cookie = ""; window.location.href = "/";})
 
 function camera(){
-    if(cameraOfSet.x < player.x * gridWidth - screenWidth/2) cameraOfSet.x += ((player.x * gridWidth - screenWidth/2) - cameraOfSet.x)/10;
-    else if(cameraOfSet.x > player.x * gridWidth - screenWidth/2) cameraOfSet.x -= (cameraOfSet.x - (player.x * gridWidth - screenWidth/2))/10;
+    if(cameraOfSet.x < player.x * gridWidth - screenWidth/2) cameraOfSet.x += ((player.x * gridWidth - screenWidth/2) - cameraOfSet.x)/50;
+    else if(cameraOfSet.x > player.x * gridWidth - screenWidth/2) cameraOfSet.x -= (cameraOfSet.x - (player.x * gridWidth - screenWidth/2))/50;
 
     cameraOfSet.x = (cameraOfSet.x > mapSize * gridWidth - screenWidth)? mapSize * gridWidth - screenWidth :(cameraOfSet.x < 0)? 0 : cameraOfSet.x;
     cameraOfSet.x = Math.round(cameraOfSet.x);
 
-    if(cameraOfSet.y < player.y * gridHeight - screenHeight/2) cameraOfSet.y += ((player.y * gridHeight - screenHeight/2) - cameraOfSet.y)/10;
-    else if(cameraOfSet.y > player.y * gridHeight - screenHeight/2)cameraOfSet.y -= (cameraOfSet.y - (player.y * gridHeight - screenHeight/2))/10;
+    if(cameraOfSet.y < player.y * gridHeight - screenHeight/2) cameraOfSet.y += ((player.y * gridHeight - screenHeight/2) - cameraOfSet.y)/50;
+    else if(cameraOfSet.y > player.y * gridHeight - screenHeight/2)cameraOfSet.y -= (cameraOfSet.y - (player.y * gridHeight - screenHeight/2))/50;
         
     cameraOfSet.y = (cameraOfSet.y > mapSize * gridHeight - screenWidth)?  mapSize * gridHeight - screenWidth : (cameraOfSet.y < 0)? 0 : cameraOfSet.y;
     cameraOfSet.y = Math.round(cameraOfSet.y);
-
-
 }
     
 
@@ -78,16 +76,16 @@ function draw(data){
     ctx.fillStyle = 'black';
     ctx.fillText("Length: " + (player.tail.length + 1), screenWidth - 75, screenHeight - 15);
 
-    let lenghts = data.players.map((p) =>({
+    let scores = data.players.map((p) =>({
         id: p.id,
-        len: p.tail.length + 1,
+        score: p.score,
         username: p.username
     }));
 
-    lenghts.sort((a, b) => b.len - a.len);
-    for(let i = 0; i < 5 && lenghts[i]; i++){
+    scores.sort((a, b) => b.score - a.score);
+    for(let i = 0; i < 5 && scores[i]; i++){
         
-            ctx.fillText(lenghts[i].username+ ": " + lenghts[i].len, 15, 30 + 15* i);
+            ctx.fillText(scores[i].username+ ": " + scores[i].score, 15, 30 + 15* i);
 
     }
 
@@ -96,22 +94,31 @@ function draw(data){
             ctx.fillStyle = 'black';
         else
             ctx.fillStyle = 'blue';
-        if((p.x  * gridWidth - cameraOfSet.x >= 0 && p.x * gridWidth - cameraOfSet.x <= screenWidth) &&
-           (p.y * gridHeight - cameraOfSet.y >= 0 && p.y * gridHeight - cameraOfSet.y <= screenHeight))
+        if((p.x  * gridWidth - cameraOfSet.x >= -gridWidth && p.x * gridWidth - cameraOfSet.x <= screenWidth + gridWidth) &&
+           (p.y * gridHeight - cameraOfSet.y >= -gridHeight && p.y * gridHeight - cameraOfSet.y <= screenHeight + gridHeight))
             ctx.fillRect(p.x * gridWidth - cameraOfSet.x, p.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
         p.tail.forEach((t) =>{
-            if((t.x  * gridWidth - cameraOfSet.x >= 0 && t.x * gridWidth - cameraOfSet.x <= screenWidth) &&
-               (t.y * gridHeight - cameraOfSet.y >= 0 && t.y * gridHeight - cameraOfSet.y <= screenHeight))
+            if((t.x  * gridWidth - cameraOfSet.x >= -gridWidth && t.x * gridWidth - cameraOfSet.x <= screenWidth + gridWidth) &&
+               (t.y * gridHeight - cameraOfSet.y >= -gridHeight && t.y * gridHeight - cameraOfSet.y <= screenHeight + gridHeight))
                 ctx.fillRect(t.x * gridWidth - cameraOfSet.x, t.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
         });
     });
 
     data.apples.forEach((a) =>{
-        if((a.x  * gridWidth - cameraOfSet.x >= 0 && a.x * gridWidth - cameraOfSet.x <= screenWidth) &&
-           (a.y * gridHeight - cameraOfSet.y >= 0 && a.y * gridHeight - cameraOfSet.y <= screenHeight)){
+        if((a.x  * gridWidth - cameraOfSet.x >= -gridWidth && a.x * gridWidth - cameraOfSet.x <= screenWidth + gridWidth) &&
+           (a.y * gridHeight - cameraOfSet.y >= -gridHeight && a.y * gridHeight - cameraOfSet.y <= screenHeight + gridHeight)){
             ctx.fillStyle = a.colour;
             ctx.fillRect(a.x  * gridWidth - cameraOfSet.x, a.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
         }
-    })
+    });
+
+    data.shots.forEach((a) =>{
+        if((a.x  * gridWidth - cameraOfSet.x >= -gridWidth && a.x * gridWidth - cameraOfSet.x <= screenWidth + gridWidth) &&
+           (a.y * gridHeight - cameraOfSet.y >= -gridHeight && a.y * gridHeight - cameraOfSet.y <= screenHeight + gridHeight)){
+            ctx.fillStyle = 'blue';    
+            if(a.shid === player.id) ctx.fillStyle = 'black';
+            ctx.fillRect(a.x  * gridWidth - cameraOfSet.x, a.y * gridHeight - cameraOfSet.y, gridWidth, gridHeight);
+        }
+    });
 }
 
