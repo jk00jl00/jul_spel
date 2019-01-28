@@ -174,21 +174,24 @@ io.on('connection',function(socket){
                                 apples.forEach((a) =>{
                                     if(a.x === this.x && a.y === this.y){
                                         a.respawn();
-                                        shots.splice(shots.indexOf(this), 1);                                        
+                                        if(this.size < 5)
+                                            shots.splice(shots.indexOf(this), 1);                                        
                                     }
                                 });
 
                                 shots.forEach((s) => {
                                     if(s !== this && s.x === this.x && s.y === this.y){
                                         shots.splice(shots.indexOf(s)   , 1);
-                                        shots.splice(shots.indexOf(this), 1);
+                                        if(this.size < 10)
+                                            shots.splice(shots.indexOf(this), 1);
                                     }
                                 });
                 
                                 players.forEach((s) => {
                                     if(s.x === this.x && s.y === this.y){
                                         s.tailToFood(-1);
-                                        shots.splice(shots.indexOf(this), 1);
+                                        if(this.size < 50)
+                                            shots.splice(shots.indexOf(this), 1);
                                         s.respawn();
                                         if(s === this.shooter) s.score--;
                                         else this.shooter.score++;
@@ -202,7 +205,8 @@ io.on('connection',function(socket){
                                                 if(s === this.shooter) s.score--;
                                                 else this.shooter.score++;
                                             }
-                                            shots.splice(shots.indexOf(this), 1);
+                                            if(this.size < 25)
+                                                shots.splice(shots.indexOf(this), 1);
                                         }
                                     });
                 
@@ -211,148 +215,21 @@ io.on('connection',function(socket){
                         };
                         if(this.tail.length > 53){
                             size = 50;
-                            shot.checkCollisions = function(){
-                                apples.forEach((a) =>{
-                                    if(a.x === this.x && a.y === this.y){
-                                        a.respawn();
-                                    }
-                                });
-                                shots.forEach((s) => {
-                                    if(s !== this && s.x === this.x && s.y === this.y){
-                                        shots.splice(shots.indexOf(s)   , 1);
-                                    }
-                                });
-                                players.forEach((s) => {
-                                    if(s.x === this.x && s.y === this.y){
-                                        s.tailToFood(-1);
-                                        s.respawn();
-                                        if(s === this.shooter) s.score--;
-                                        else this.shooter.score++;
-                                    }
-                                    s.tail.forEach((t) =>{
-                                        if(t.x === this.x && t.y === this.y){
-                                            s.tailToFood(s.tail.indexOf(t));
-                                            s.tail.splice(s.tail.indexOf(t),1);
-                                            if(s.tail.length < 3){
-                                                if(s === this.shooter) s.score--;
-                                                else this.shooter.score++;
-                                            }
-                                        }
-                                    });
-                
-                                });
-                            }
                         } else if(this.tail.length > 28){
                             size = 25;
-                            shot.checkCollisions = function(){
-                                apples.forEach((a) =>{
-                                    if(a.x === this.x && a.y === this.y){
-                                        a.respawn();
-                                    }
-                                });
-                                shots.forEach((s) => {
-                                    if(s !== this && s.x === this.x && s.y === this.y){
-                                        shots.splice(shots.indexOf(s)   , 1);
-                                    }
-                                });
-                                players.forEach((s) => {
-                                    if(s.x === this.x && s.y === this.y){
-                                        s.tailToFood(-1);
-                                        shots.splice(shots.indexOf(this), 1);
-                                        s.respawn();
-                                        if(s === this.shooter) s.score--;
-                                        else this.shooter.score++;
-                                    }
-                                    s.tail.forEach((t) =>{
-                                        if(t.x === this.x && t.y === this.y){
-                                            s.tailToFood(s.tail.indexOf(t));
-                                            s.tail.splice(s.tail.indexOf(t),1);
-                                            if(s.tail.length < 3){
-                                                if(s === this.shooter) s.score--;
-                                                else this.shooter.score++;
-                                            }
-                                        }
-                                    });
-                
-                                });
-                            }
                         } else if(this.tail.length > 13){
-                            size = 10;
-                            shot.checkCollisions = function(){
-                                apples.forEach((a) =>{
-                                    if(a.x === this.x && a.y === this.y){
-                                        a.respawn();
-                                    }
-                                });
-                                shots.forEach((s) => {
-                                    if(s !== this && s.x === this.x && s.y === this.y){
-                                        shots.splice(shots.indexOf(s)   , 1);
-                                        shots.splice(shots.indexOf(this), 1);
-                                    }
-                                });
-                                players.forEach((s) => {
-                                    if(s.x === this.x && s.y === this.y){
-                                        s.tailToFood(-1);
-                                        shots.splice(shots.indexOf(this), 1);
-                                        s.respawn();
-                                        if(s === this.shooter) s.score--;
-                                        else this.shooter.score++;
-                                    }
-                                    s.tail.forEach((t) =>{
-                                        if(t.x === this.x && t.y === this.y){
-                                            s.tailToFood(s.tail.indexOf(t));
-                                            s.tail.splice(s.tail.indexOf(t),1);
-                                            if(s.tail.length < 3){
-                                                if(s === this.shooter) s.score--;
-                                                else this.shooter.score++;
-                                            }
-                                        }
-                                    });
-                
-                                });
-                            }
+                            size = 10; 
                         } else if(this.tail.length > 8){
                             size = 5;
-                            shot.checkCollisions = function(){
-                                apples.forEach((a) =>{
-                                    if(a.x === this.x && a.y === this.y){
-                                        a.respawn();
-                                    }
-                                });
-                                shots.forEach((s) => {
-                                    if(s !== this && s.x === this.x && s.y === this.y){
-                                        shots.splice(shots.indexOf(s)   , 1);
-                                        shots.splice(shots.indexOf(this), 1);
-                                    }
-                                });
-                                players.forEach((s) => {
-                                    if(s.x === this.x && s.y === this.y){
-                                        s.tailToFood(-1);
-                                        shots.splice(shots.indexOf(this), 1);
-                                        s.respawn();
-                                        if(s === this.shooter) s.score--;
-                                        else this.shooter.score++;
-                                    }
-                                    s.tail.forEach((t) =>{
-                                        if(t.x === this.x && t.y === this.y){
-                                            s.tailToFood(s.tail.indexOf(t));
-                                            s.tail.splice(s.tail.indexOf(t),1);
-                                            if(s.tail.length < 3){
-                                                if(s === this.shooter) s.score--;
-                                                else this.shooter.score++;
-                                            }
-                                            shots.splice(shots.indexOf(this), 1);
-                                        }
-                                    });
-                
-                                });
-                            }
                         } 
-                        
+
+                        shot.size = size;
+
                         shots.push(shot);
                         shot.update();
 
                         this.tail.splice(this.tail.length-(size + 1), size);
+                        this.setSpeed();
                     }
                 }
                 this.shoot = false;
